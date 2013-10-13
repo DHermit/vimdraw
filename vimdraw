@@ -1,0 +1,35 @@
+function! InsertDrawing()
+    let name = input("Name: ")
+    let dir = expand('%:r')."_res/"
+    if !isdirectory(dir)
+        call mkdir(dir)
+    endif
+    let num = printf('%03d', len(split(globpath(dir,'*'), '\n')))
+    if empty(name)
+        let file = dir.num.'.png'
+    else
+        let file = dir.num.'_'.name.'.png'
+    endif
+    "system("mypaint ".file)
+    exec "silent !mypaint ".file." >/dev/null 2>/dev/null"
+    if filereadable(file)
+        exec "silent !echo ".file." > kekse.log"
+        execute "normal! o\\includegraphics[]{".file."}"
+        execute "normal! F]"
+        execute "startinsert"
+    endif
+endfunction
+
+function! EditDrawing()
+    let l = getline('.')
+    if !empty(matchstr(l, 'includegraphics'))
+        let file = matchstr(l, '{\zs[^}]*\ze}')
+        let dir = expand('%:r')."_res/"
+        if filereadable(file)
+            exec "silent !mypaint ".file." >/dev/null 2>/dev/null"
+        endif
+    endif
+endfunction
+
+nmap <silent> ;D :call InsertDrawing()<CR>
+nmap <silent> ;E :call EditDrawing()<CR>
